@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 # ------------------------------------------------------------------------------
-# sail
+# Err
 #
-#   sail invoker
+#   Err invoker
 #
 #   Usage:
-#     ./sail funcName [Options]  # if invoked from the file
+#     ./err funcName [Options]  # if invoked from the file
 #     # Line to add to .bashrc if desired: source $PATH_TO_FILE/sail.sh --source-only
 # ------------------------------------------------------------------------------
 
