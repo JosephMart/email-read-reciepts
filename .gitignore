@@ -1,0 +1,5 @@
+.env
+bin/
+pkg/
+vendor/
+.DS_Store

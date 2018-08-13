@@ -1,0 +1,13 @@
+version: '3.6'
+
+services:
+
+  receipts-db:
+    build:
+      context: ./services/receipts/db
+      dockerfile: Dockerfile
+    ports:
+      - 5435:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
