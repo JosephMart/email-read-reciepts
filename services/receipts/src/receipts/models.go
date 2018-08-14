@@ -31,6 +31,7 @@ func (n *Name) BeforeInsert(db orm.DB) error {
 
 type Event struct {
 	Id        int
+	Ip        string
 	CreatedAt time.Time `sql:"default:now()"`
 	UpdatedAt time.Time
 }

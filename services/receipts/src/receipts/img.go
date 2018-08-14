@@ -4,12 +4,38 @@ import (
 	"fmt"
 	"image/png"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"routes"
 
 	"github.com/go-pg/pg"
 )
+
+func getIP(req *routes.Request) string {
+	ip, _, err := net.SplitHostPort(req.RemoteAddr)
+
+	if err != nil {
+		fmt.Println("userip: %q is not IP:port", req.RemoteAddr)
+	}
+
+	userIP := net.ParseIP(ip)
+	if userIP == nil {
+		//return nil, fmt.Errorf("userip: %q is not IP:port", req.RemoteAddr)
+		// fmt.Println("userip: %q is not IP:port", req.RemoteAddr)
+		return ""
+	}
+
+	// This will only be defined when site is accessed via non-anonymous proxy
+	// and takes precedence over RemoteAddr
+	// Header.Get is case-insensitive
+	forward := req.Header.Get("X-Forwarded-For")
+
+	fmt.Println("IP: ", ip)
+	fmt.Println("Forwarded for:", forward)
+
+	return ip
+}
 
 func serveImg(db *pg.DB) routes.HandlerFunc {
 	return func(w http.ResponseWriter, r *routes.Request) {
@@ -18,10 +44,12 @@ func serveImg(db *pg.DB) routes.HandlerFunc {
 		name := new(Name)
 		err := db.Model(name).Where("key = ?", key).Select()
 
+		ip := getIP(r)
+
 		if err != nil {
 			fmt.Println(err)
 		} else {
-			event := &Event{}
+			event := &Event{Ip: ip}
 			err := db.Insert(event)
 
 			if err != nil {
