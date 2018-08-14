@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/go-pg/pg"
@@ -44,11 +45,12 @@ func (e *Event) BeforeInsert(db orm.DB) error {
 }
 
 func dbInit() *pg.DB {
+	fmt.Println(os.Getenv("DATABASE_USER"))
 	db := pg.Connect(&pg.Options{
-		User:     "postgres",
-		Password: "postgres",
+		User:     os.Getenv("DATABASE_USER"),
+		Password: os.Getenv("DATABASE_PASSWORD"),
 		Database: "reciepts",
-		Addr:     "localhost:5435",
+		Addr:     os.Getenv("DATABASE_URL"),
 	})
 
 	err := createSchema(db)

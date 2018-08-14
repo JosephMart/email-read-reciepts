@@ -11,3 +11,20 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+
+  receipts:
+    build:
+      context: ./services/receipts
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=receipts-db:5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres
+      # - DATABASE_URL=postgres://postgres:postgres@receipts-db:5432
+    ports:
+      - 5001:5000
+    depends_on:
+      - receipts-db
+    links:
+      - receipts-db
+
