@@ -13,7 +13,7 @@ type Name struct {
 	Id        int
 	Name      string
 	Key       string
-	Events    []Event
+	Events    []*Event
 	CreatedAt time.Time `sql:"default:now()"`
 	UpdatedAt time.Time
 }

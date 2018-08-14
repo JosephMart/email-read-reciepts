@@ -4,11 +4,11 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"routes"
 	"sync/atomic"
 	"time"
 )
@@ -25,16 +25,6 @@ var (
 )
 
 func main() {
-	files, err := ioutil.ReadDir("./")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, f := range files {
-		fmt.Println(f.Name())
-	}
-
-	fmt.Println("Hello world")
 	db := dbInit()
 	defer db.Close()
 
@@ -44,11 +34,11 @@ func main() {
 	logger := log.New(os.Stdout, "http: ", log.LstdFlags)
 	logger.Println("Server is starting...")
 
-	router := http.NewServeMux()
-	router.Handle("/", index())
-	router.Handle("/healthz", healthz())
-	router.Handle("/name", createName(db))
-	router.Handle("/img/{key}", serveImg())
+	router := routes.NewRouter()
+	router.AddRoute("^/$", index())
+	router.AddRoute("^/healthz", healthz())
+	router.AddRoute("/name", createName(db))
+	router.AddRoute("^/img/(?P<key>\\w+).png$", serveImg(db))
 
 	nextRequestID := func() string {
 		return fmt.Sprintf("%d", time.Now().UnixNano())
@@ -90,21 +80,10 @@ func main() {
 
 	<-done
 	logger.Println("Server stopped")
-
-	// name1 := &Name{
-	// 	Name: "test1",
-	// 	Key:  "23453",
-	// }
-
-	// err := db.Insert(name1)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
 }
 
-func index() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func index() routes.HandlerFunc {
+	return func(w http.ResponseWriter, r *routes.Request) {
 		if r.URL.Path != "/" {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
@@ -113,17 +92,17 @@ func index() http.Handler {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintln(w, "Hello, World!")
-	})
+	}
 }
 
-func healthz() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func healthz() routes.HandlerFunc {
+	return func(w http.ResponseWriter, r *routes.Request) {
 		if atomic.LoadInt32(&healthy) == 1 {
 			w.WriteHeader(http.StatusNoContent)
 			return
 		}
 		w.WriteHeader(http.StatusServiceUnavailable)
-	})
+	}
 }
 
 func logging(logger *log.Logger) func(http.Handler) http.Handler {

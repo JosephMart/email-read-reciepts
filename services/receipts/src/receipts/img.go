@@ -6,16 +6,38 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
+	"routes"
+
+	"github.com/go-pg/pg"
 )
 
-func serveImg() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func serveImg(db *pg.DB) routes.HandlerFunc {
+	return func(w http.ResponseWriter, r *routes.Request) {
+		key := r.Kwargs["key"]
+
+		name := new(Name)
+		err := db.Model(name).Where("key = ?", key).Select()
+
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			event := &Event{}
+			err := db.Insert(event)
+
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			name.Events = append(name.Events, event)
+			err = db.Update(name)
+
+			if err != nil {
+				fmt.Println(err)
+			}
+		}
+
 		Path := "./img.png"
-		var ImageExtension = strings.Split(Path, ".png")
-		var ImageNum = strings.Split(ImageExtension[0], "/")
-		var ImageName = ImageNum[len(ImageNum)-1]
-		fmt.Println(ImageName)
+
 		file, err := os.Open(Path)
 		if err != nil {
 			log.Fatal(err)
@@ -27,6 +49,6 @@ func serveImg() http.Handler {
 		}
 		file.Close()
 
-		png.Encode(w, img) // Write to the ResponseWriter
-	})
+		png.Encode(w, img)
+	}
 }

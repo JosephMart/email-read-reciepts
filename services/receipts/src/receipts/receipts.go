@@ -3,11 +3,12 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"routes"
 
 	"github.com/go-pg/pg"
 )
 
-func createName(db *pg.DB) http.Handler {
+func createName(db *pg.DB) routes.HandlerFunc {
 	type Request struct {
 		Name string `json:"name"`
 		Key  string `json:"key"`
@@ -17,7 +18,7 @@ func createName(db *pg.DB) http.Handler {
 		Status string `json:"status"`
 		Data   Name   `json:"data"`
 	}
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *routes.Request) {
 		req := &Request{}
 
 		json.NewDecoder(r.Body).Decode(&req)
@@ -31,5 +32,5 @@ func createName(db *pg.DB) http.Handler {
 			panic(err)
 		}
 		json.NewEncoder(w).Encode(name)
-	})
+	}
 }
