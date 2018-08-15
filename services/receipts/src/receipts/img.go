@@ -73,10 +73,21 @@ func serveImg(db *pg.DB) routes.HandlerFunc {
 
 		img, err := png.Decode(file)
 		if err != nil {
+			// don't check the error on Close because we will end up masking the actual Decode error
+			file.Close()
 			log.Fatal(err)
 		}
-		file.Close()
 
-		png.Encode(w, img)
+		if err := png.Encode(w, img); err != nil {
+			// don't check the error on Close because we will end up masking the actual Encode error
+			file.Close()
+			log.Fatal(err)
+		}
+		
+		// closing a file can error
+		// https://joeshaw.org/dont-defer-close-on-writable-files/
+		if err := file.Close(); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
